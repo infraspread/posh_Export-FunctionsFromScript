@@ -9,6 +9,9 @@
 #       . .\MyExportedFunctions.ps1
 #       MyExportedFunction
 
+#       Example:
+#       export-FunctionsFromScript -Script "C:\Users\Infraspread\Desktop\Powershell\MicroFunctions.ps1" -Output "test-exported_functions.ps1"
+
 function dashLine {
     [CmdletBinding()]
     Param(
@@ -39,10 +42,13 @@ Function export-FunctionsFromScript(){
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Script to export functions from")]
         [string]$Script,
         [Parameter(Mandatory=$false)]
-        [string]$Output
+        [string]$Output,
+        [Parameter(Mandatory=$false)]
+        [Switch]$ConsoleOutput=$false
     )
     
     if (Test-Path $Script) {
+        write-host $Script
         Write-Host "Script File found: $Script" -ForegroundColor Green
         
         if ($null -eq $Output) {
@@ -50,17 +56,22 @@ Function export-FunctionsFromScript(){
             $Output = $OutputFileName
         }
         
-        [String]$FunctionText=@()
+        [String]$Script:FunctionText=@()
         New-Variable astTokens -Force
         New-Variable astErr -Force
         $AST = [System.Management.Automation.Language.Parser]::ParseFile($Script, [ref]$astTokens, [ref]$astErr)
         $functions = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)
         write-host "Found the following $($functions.Count) Functions: "`n -ForegroundColor White
-        $Functions | ForEach-Object { 
-            dashLine -MiddleText "Start of Function: $($_.Name)" -ForegroundColor White -BackgroundColor Black
-            $_.Extent.Text | write-host -BackgroundColor DarkGray -ForegroundColor Green
-            dashLine -MiddleText "End of Function: $($_.Name)" -ForegroundColor White -BackgroundColor Black
-        } 
+        write-host $Functions.Name -ForegroundColor Green 
+        
+        if ($ConsoleOutput) {
+            $Functions | ForEach-Object { 
+                dashLine -MiddleText "Start of Function: $($_.Name)" -ForegroundColor White -BackgroundColor Black
+                $_.Extent.Text | write-host -BackgroundColor Black -ForegroundColor Red
+                dashLine -MiddleText "End of Function: $($_.Name)" -ForegroundColor White -BackgroundColor Black
+            } 
+        }
+        
         $Script:FunctionText+=$Functions.Extent.Text+"`n`n"
         $Script:FunctionText | Out-File $Output
     } else {
@@ -73,4 +84,4 @@ if (Test-Path .\test-exported_functions.ps1) {
     Remove-Item .\test-exported_functions.ps1
 }
 
-export-FunctionsFromScript -Script "C:\Users\Infraspread\Desktop\Powershell\MicroFunctions.ps1" -Output "test-exported_functions.ps1"
+
