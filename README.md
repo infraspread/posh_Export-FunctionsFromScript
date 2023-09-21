@@ -10,5 +10,5 @@ Powershell script function export utility
       . .\MyExportedFunctions.ps1
       MyExportedFunction
 
-      Example:
-      export-FunctionsFromScript -Script "C:\Users\Infraspread\Desktop\Powershell\MicroFunctions.ps1" -Output "test-exported_functions.ps1"
+# Example:
+export-FunctionsFromScript -Script "C:\Users\Infraspread\Desktop\Powershell\MicroFunctions.ps1" -Output "test-exported_functions.ps1"
