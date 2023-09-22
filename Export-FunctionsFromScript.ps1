@@ -1,5 +1,5 @@
 # Powershell script function export utility
-# Usage: 
+# Usage:
 # 1)    source this script:
 #       . .\Export-FunctionsFromScript.ps1
 # 2)    call this function:
@@ -22,7 +22,7 @@ function dashLine {
         [Parameter(Mandatory=$false)]
         [ConsoleColor]$BackgroundColor = "Black"
     )
-    
+
     $dashLine = "-" * $Host.UI.RawUI.WindowSize.Width
     Write-Host $dashLine -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor
     if ($MiddleText) {
@@ -46,32 +46,32 @@ Function export-FunctionsFromScript(){
         [Parameter(Mandatory=$false)]
         [Switch]$ConsoleOutput=$false
     )
-    
+
     if (Test-Path $Script) {
         write-host $Script
         Write-Host "Script File found: $Script" -ForegroundColor Green
-        
+
         if ($null -eq $Output) {
             $OutputFileName =$Script+"_exportetFn.ps1"
             $Output = $OutputFileName
         }
-        
+
         [String]$Script:FunctionText=@()
         New-Variable astTokens -Force
         New-Variable astErr -Force
         $AST = [System.Management.Automation.Language.Parser]::ParseFile($Script, [ref]$astTokens, [ref]$astErr)
         $functions = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)
         write-host "Found the following $($functions.Count) Functions: "`n -ForegroundColor White
-        write-host $Functions.Name -ForegroundColor Green 
-        
+        write-host $Functions.Name -ForegroundColor Green
+
         if ($ConsoleOutput) {
-            $Functions | ForEach-Object { 
+            $Functions | ForEach-Object {
                 dashLine -MiddleText "Start of Function: $($_.Name)" -ForegroundColor White -BackgroundColor Black
                 $_.Extent.Text | write-host -BackgroundColor Black -ForegroundColor Red
                 dashLine -MiddleText "End of Function: $($_.Name)" -ForegroundColor White -BackgroundColor Black
-            } 
+            }
         }
-        
+
         $Script:FunctionText+=$Functions.Extent.Text+"`n`n"
         $Script:FunctionText | Out-File $Output
     } else {
@@ -83,5 +83,3 @@ Function export-FunctionsFromScript(){
 if (Test-Path .\test-exported_functions.ps1) {
     Remove-Item .\test-exported_functions.ps1
 }
-
-
